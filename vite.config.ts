@@ -10,14 +10,4 @@ export default defineConfig({
     tailwindcss(),
     babel({ presets: [reactCompilerPreset()] }),
   ],
-  server: {
-    proxy: {
-      "/api/chatbot": {
-        target: "https://bella.staginggo.media",
-        changeOrigin: true,
-        secure: true,
-        rewrite: (path) => path.replace(/^\/api\/chatbot/, "/chatbot"),
-      },
-    },
-  },
 });
