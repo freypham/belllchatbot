@@ -102,7 +102,9 @@ export function MessageItem({ message, onSelectListing }: MessageItemProps) {
         >
           {avatarLabel}
         </div>
-        <div className={`flex min-w-0 flex-col ${isUser ? "items-end" : "items-start"}`}>
+        <div
+          className={`flex min-w-0 flex-col ${isUser ? "items-end" : "items-start"}`}
+        >
           <span className="mb-1 px-1 text-xs font-medium text-[var(--text)]/80">
             {senderName}
           </span>

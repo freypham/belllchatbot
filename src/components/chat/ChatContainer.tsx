@@ -1,7 +1,10 @@
 import { useMutation } from "@tanstack/react-query";
 import { useCallback, useEffect, useState } from "react";
 import { postChatMessage } from "../../api/chatClient";
-import { loadMessagesFromStorage, saveMessagesToStorage } from "../../lib/chatPersistence";
+import {
+  loadMessagesFromStorage,
+  saveMessagesToStorage,
+} from "../../lib/chatPersistence";
 import type { ChatMessage, PropertyListing } from "../../types/chat";
 import { ChatInput } from "./ChatInput";
 import { ListingDetailModal } from "./ListingDetailModal";
@@ -57,7 +60,9 @@ export function ChatContainer() {
       },
       onError: (err) => {
         const msg =
-          err instanceof Error ? err.message : "Something went wrong. Try again.";
+          err instanceof Error
+            ? err.message
+            : "Something went wrong. Try again.";
         setMessages((prev) => [
           ...prev,
           { id: newId(), role: "assistant", content: msg },
