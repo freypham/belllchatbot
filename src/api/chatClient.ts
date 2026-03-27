@@ -21,6 +21,8 @@ export async function postChatMessage(
   const sessionFromCookie = getSessionIdFromCookie();
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
+    "Access-Control-Allow-Origin": "*",
+    "Access-Control-Allow-Headers": "Content-Type, Authorization",
     "x-api-key": apiKey,
   };
   if (sessionFromCookie) {
@@ -33,7 +35,6 @@ export async function postChatMessage(
       { message },
       {
         headers,
-        withCredentials: true,
       },
     );
 
