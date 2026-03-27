@@ -67,14 +67,22 @@ export function ChatContainer() {
   }, [draft, mutation]);
 
   return (
-    <div className="flex h-[100dvh] min-h-0 flex-col bg-[var(--bg)]">
+    <div className="flex h-dvh min-h-0 flex-col bg-[var(--bg)]">
       <header className="shrink-0 border-b border-[var(--border)] bg-[var(--bg)]/90 px-4 py-3 backdrop-blur-sm">
         <div className="mx-auto flex max-w-[768px] items-center justify-between gap-3">
           <div className="text-left">
-            <h1 className="text-base font-semibold text-[var(--text-h)]">
-              Bella
-            </h1>
-            <p className="text-xs text-[var(--text)]">Real estate assistant</p>
+            <div className="flex items-center gap-2">
+              <span className="grid h-7 w-7 place-items-center rounded-full border border-[var(--border)] bg-[var(--social-bg)] text-xs font-semibold text-[var(--text-h)]">
+                B
+              </span>
+              <h1 className="text-base font-semibold text-[var(--text-h)]">
+                Bella
+              </h1>
+              <span className="inline-block h-2 w-2 rounded-full bg-emerald-500" />
+            </div>
+            <p className="mt-0.5 text-xs text-[var(--text)]">
+              Real estate assistant
+            </p>
           </div>
         </div>
       </header>

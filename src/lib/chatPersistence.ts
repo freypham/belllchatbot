@@ -4,7 +4,7 @@ const STORAGE_KEY = "bella-chat-messages";
 
 export function loadMessagesFromStorage(): ChatMessage[] {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
+    const raw = sessionStorage.getItem(STORAGE_KEY);
     if (!raw) return [];
     const parsed = JSON.parse(raw) as unknown;
     if (!Array.isArray(parsed)) return [];
@@ -23,7 +23,7 @@ export function loadMessagesFromStorage(): ChatMessage[] {
 
 export function saveMessagesToStorage(messages: ChatMessage[]): void {
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(messages));
+    sessionStorage.setItem(STORAGE_KEY, JSON.stringify(messages));
   } catch {
     /* quota or private mode */
   }

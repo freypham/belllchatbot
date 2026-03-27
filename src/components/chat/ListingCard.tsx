@@ -1,4 +1,14 @@
 import type { PropertyListing } from "../../types/chat";
+import {
+  listingAreaSqft,
+  listingBaths,
+  listingBeds,
+  listingImages,
+  listingPrice,
+  listingScore,
+  listingTypeLabel,
+  prettyNumber,
+} from "../../lib/listingFields";
 
 function formatMoney(amount: number, currency = "SGD"): string {
   try {
@@ -29,10 +39,13 @@ export function ListingCard({
   onOpen,
 }: ListingCardProps) {
   const currency = listing.currency ?? "SGD";
-  const typeLabel =
-    listing.property_type === "HDB" || listing.property_type === "Condo"
-      ? listing.property_type
-      : listing.property_type ?? "—";
+  const typeLabel = listingTypeLabel(listing);
+  const previewImage = listingImages(listing)[0];
+  const score = listingScore(listing);
+  const price = listingPrice(listing);
+  const beds = listingBeds(listing);
+  const baths = listingBaths(listing);
+  const areaSqft = listingAreaSqft(listing);
 
   return (
     <article
@@ -47,13 +60,23 @@ export function ListingCard({
       }}
       className="group flex h-full w-[min(100%,300px)] shrink-0 cursor-pointer snap-start flex-col rounded-2xl border border-[var(--border)] bg-[var(--bg)] p-4 text-left shadow-[0_4px_14px_rgba(0,0,0,0.06)] transition hover:border-[var(--accent-border)] hover:shadow-[var(--shadow)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent)]"
     >
+      {previewImage && (
+        <div className="mb-3 h-40 overflow-hidden rounded-xl border border-[var(--border)]">
+          <img
+            src={previewImage}
+            alt={listing.title}
+            loading="lazy"
+            className="h-full w-full object-cover transition duration-300 group-hover:scale-[1.03]"
+          />
+        </div>
+      )}
       <div className="mb-2 flex flex-wrap items-start justify-between gap-2">
         <h3 className="line-clamp-2 flex-1 font-semibold text-[var(--text-h)]">
           {listing.title}
         </h3>
-        {listing.score != null && (
+        {score != null && (
           <span className="shrink-0 rounded-full bg-[var(--accent-bg)] px-2 py-0.5 text-xs font-medium text-[var(--accent)]">
-            {formatScore(listing.score)}
+            {formatScore(score)}
           </span>
         )}
       </div>
@@ -63,21 +86,19 @@ export function ListingCard({
         </span>
       )}
       <p className="mb-3 text-lg font-semibold text-[var(--text-h)]">
-        {formatMoney(listing.price, currency)}
+        {formatMoney(price, currency)}
       </p>
       <dl className="mt-auto space-y-1.5 text-sm text-[var(--text)]">
         <div className="flex justify-between gap-2">
           <dt className="text-[var(--text)]/80">Beds / Baths</dt>
           <dd className="text-[var(--text-h)]">
-            {listing.bedrooms ?? "—"} / {listing.bathrooms ?? "—"}
+            {prettyNumber(beds)} / {prettyNumber(baths)}
           </dd>
         </div>
         <div className="flex justify-between gap-2">
           <dt className="text-[var(--text)]/80">Area</dt>
           <dd className="text-[var(--text-h)]">
-            {listing.floor_area_sqft != null
-              ? `${listing.floor_area_sqft.toLocaleString()} sqft`
-              : "—"}
+            {areaSqft != null ? `${Math.round(areaSqft).toLocaleString()} sqft` : "—"}
           </dd>
         </div>
         <div className="flex flex-col gap-0.5">

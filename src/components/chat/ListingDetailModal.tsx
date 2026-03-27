@@ -1,5 +1,14 @@
-import { useEffect } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { PropertyListing } from "../../types/chat";
+import {
+  listingAreaSqft,
+  listingBaths,
+  listingBeds,
+  listingImages,
+  listingPrice,
+  listingTypeLabel,
+  prettyNumber,
+} from "../../lib/listingFields";
 
 type ListingDetailModalProps = {
   listing: PropertyListing | null;
@@ -22,6 +31,8 @@ export function ListingDetailModal({
   listing,
   onClose,
 }: ListingDetailModalProps) {
+  const [activeImageIdx, setActiveImageIdx] = useState(0);
+
   useEffect(() => {
     if (!listing) return;
     const onKey = (e: KeyboardEvent) => {
@@ -31,15 +42,48 @@ export function ListingDetailModal({
     return () => window.removeEventListener("keydown", onKey);
   }, [listing, onClose]);
 
+  useEffect(() => {
+    setActiveImageIdx(0);
+  }, [listing]);
+
   if (!listing) return null;
 
   const currency = listing.currency ?? "SGD";
-  const entries = Object.entries(listing).filter(
-    ([k, v]) =>
-      v != null &&
-      v !== "" &&
-      !["image_url"].includes(k) &&
-      typeof v !== "object",
+  const price = listingPrice(listing);
+  const images = listingImages(listing);
+  const area = listingAreaSqft(listing);
+  const beds = listingBeds(listing);
+  const baths = listingBaths(listing);
+  const propertyType = listingTypeLabel(listing);
+  const tenure =
+    typeof listing.tenure === "string" && listing.tenure ? listing.tenure : "—";
+
+  const activeImage = images[activeImageIdx];
+
+  const entries = useMemo(
+    () =>
+      Object.entries(listing).filter(
+        ([k, v]) =>
+          v != null &&
+          v !== "" &&
+          ![
+            "image_url",
+            "media",
+            "price",
+            "price_value",
+            "bedrooms",
+            "bathrooms",
+            "floor_area_sqft",
+            "property_type",
+            "property_type_name",
+            "property_type_broad",
+            "title",
+            "address",
+            "tenure",
+          ].includes(k) &&
+          typeof v !== "object",
+      ),
+    [listing],
   );
 
   return (
@@ -76,17 +120,78 @@ export function ListingDetailModal({
           </button>
         </div>
 
-        <p className="mb-6 text-2xl font-semibold text-[var(--text-h)]">
-          {formatMoney(listing.price, currency)}
+        <p className="mb-4 text-2xl font-semibold text-[var(--text-h)]">
+          {formatMoney(price, currency)}
         </p>
 
-        {listing.image_url && typeof listing.image_url === "string" && (
-          <img
-            src={listing.image_url}
-            alt=""
-            className="mb-4 max-h-48 w-full rounded-xl object-cover"
-          />
+        {activeImage && (
+          <div className="mb-4">
+            <div className="relative overflow-hidden rounded-xl border border-[var(--border)] bg-[var(--social-bg)]">
+              <img
+                src={activeImage}
+                alt={listing.title}
+                className="h-56 w-full object-cover sm:h-64"
+              />
+              {images.length > 1 && (
+                <>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setActiveImageIdx(
+                        (prev) => (prev - 1 + images.length) % images.length,
+                      )
+                    }
+                    className="absolute left-2 top-1/2 -translate-y-1/2 rounded-full bg-black/45 p-2 text-white"
+                    aria-label="Previous image"
+                  >
+                    <Arrow direction="left" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setActiveImageIdx((prev) => (prev + 1) % images.length)
+                    }
+                    className="absolute right-2 top-1/2 -translate-y-1/2 rounded-full bg-black/45 p-2 text-white"
+                    aria-label="Next image"
+                  >
+                    <Arrow direction="right" />
+                  </button>
+                </>
+              )}
+            </div>
+            {images.length > 1 && (
+              <div className="mt-2 flex gap-2 overflow-x-auto pb-1">
+                {images.map((src, idx) => (
+                  <button
+                    type="button"
+                    key={`${src}-${idx}`}
+                    onClick={() => setActiveImageIdx(idx)}
+                    className={`h-14 w-20 shrink-0 overflow-hidden rounded-lg border ${
+                      idx === activeImageIdx
+                        ? "border-[var(--accent)] ring-2 ring-[var(--accent)]/20"
+                        : "border-[var(--border)]"
+                    }`}
+                    aria-label={`Open image ${idx + 1}`}
+                  >
+                    <img
+                      src={src}
+                      alt=""
+                      className="h-full w-full object-cover"
+                      loading="lazy"
+                    />
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
         )}
+
+        <div className="mb-5 grid grid-cols-2 gap-2 rounded-xl bg-[var(--social-bg)] p-3 text-sm text-[var(--text-h)]">
+          <InfoPill label="Beds / Baths" value={`${prettyNumber(beds)} / ${prettyNumber(baths)}`} />
+          <InfoPill label="Area" value={area != null ? `${Math.round(area).toLocaleString()} sqft` : "—"} />
+          <InfoPill label="Type" value={propertyType} />
+          <InfoPill label="Tenure" value={tenure} />
+        </div>
 
         {listing.description && typeof listing.description === "string" && (
           <p className="mb-4 text-[var(--text)]">{listing.description}</p>
@@ -117,5 +222,36 @@ export function ListingDetailModal({
         </button>
       </div>
     </div>
+  );
+}
+
+function InfoPill({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-lg border border-[var(--border)] bg-[var(--bg)] p-2.5">
+      <p className="text-[11px] uppercase tracking-wide text-[var(--text)]/75">
+        {label}
+      </p>
+      <p className="mt-0.5 text-sm font-medium text-[var(--text-h)]">{value}</p>
+    </div>
+  );
+}
+
+function Arrow({ direction }: { direction: "left" | "right" }) {
+  return (
+    <svg
+      width="18"
+      height="18"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      aria-hidden
+    >
+      {direction === "left" ? (
+        <path d="M15 18l-6-6 6-6" strokeLinecap="round" strokeLinejoin="round" />
+      ) : (
+        <path d="M9 18l6-6-6-6" strokeLinecap="round" strokeLinejoin="round" />
+      )}
+    </svg>
   );
 }

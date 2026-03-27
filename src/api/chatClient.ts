@@ -12,7 +12,7 @@ export async function postChatMessage(
   message: string,
 ): Promise<ChatApiResponse> {
   const url = import.meta.env.VITE_CHAT_API_URL ?? DEFAULT_URL;
-  const apiKey = "Ebros15JE5rC9ZmdTeqOTlPlgwqX52vD3BeteqGp7eQ";
+  const apiKey = import.meta.env.VITE_API_KEY;
   if (!apiKey) {
     throw new Error("Missing VITE_API_KEY. Set it in .env.local");
   }

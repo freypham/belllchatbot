@@ -1,5 +1,6 @@
 import { useCallback, useRef } from "react";
 import type { PropertyListing } from "../../types/chat";
+import { listingId } from "../../lib/listingFields";
 import { ListingCard } from "./ListingCard";
 
 type ListingCarouselProps = {
@@ -66,7 +67,7 @@ export function ListingCarousel({
       >
         {listings.map((listing, i) => (
           <ListingCard
-            key={listing.id ?? `${listing.title}-${i}`}
+            key={listingId(listing) ?? `${listing.title}-${i}`}
             listing={listing}
             isBestMatch={
               hasAnyScore && i === bestIdx && listing.score != null
