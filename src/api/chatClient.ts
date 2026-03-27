@@ -1,9 +1,11 @@
 import axios from "axios";
 import type { ChatApiResponse } from "../types/chat";
+import {
+  getSessionIdFromStorage,
+  setSessionIdStorage,
+} from "../lib/sessionCookie";
 
-const DEFAULT_URL = import.meta.env.DEV
-  ? "/api/chatbot"
-  : "https://bella.staginggo.media/chatbot";
+const DEFAULT_URL = "https://bella.staginggo.media/chatbot";
 
 export async function postChatMessage(
   message: string,
@@ -16,19 +18,25 @@ export async function postChatMessage(
 
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
-    "Access-Control-Allow-Origin": "*",
-    "Access-Control-Allow-Headers": "Content-Type, Authorization",
     "x-api-key": apiKey,
   };
+  const sessionId = getSessionIdFromStorage();
+  if (sessionId) {
+    headers["session_id"] = sessionId;
+  }
 
   try {
     const { data } = await axios.post<ChatApiResponse>(
       url,
-      { message },
+      { message, session_id: sessionId },
       {
         headers,
       },
     );
+
+    if (data.session_id) {
+      setSessionIdStorage(data.session_id);
+    }
 
     return data;
   } catch (error) {
