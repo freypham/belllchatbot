@@ -37,10 +37,11 @@ export async function postChatMessage(
         headers,
       },
     );
-
-    if (data.session_id) {
+    const currSessionId = getSessionIdFromCookie();
+    if (currSessionId !== data.session_id) {
       setSessionIdCookie(data.session_id);
     }
+
     return data;
   } catch (error) {
     if (axios.isAxiosError(error)) {

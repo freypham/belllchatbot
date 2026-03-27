@@ -1,4 +1,4 @@
-const SESSION_COOKIE = "bella_session_id";
+const SESSION_COOKIE = "session_id";
 const MAX_AGE_SEC = 60 * 60 * 24 * 400; // ~400 days
 
 function parseCookies(): Record<string, string> {
