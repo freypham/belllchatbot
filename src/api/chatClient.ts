@@ -1,3 +1,4 @@
+import axios from "axios";
 import type { ChatApiResponse } from "../types/chat";
 import {
   getSessionIdFromCookie,
@@ -26,32 +27,34 @@ export async function postChatMessage(
     headers["X-Session-Id"] = sessionFromCookie;
   }
 
-  const res = await fetch(url, {
-    method: "POST",
-    headers,
-    credentials: "include",
-    body: JSON.stringify({ message }),
-  });
-
-  const text = await res.text();
-  let data: unknown;
   try {
-    data = text ? JSON.parse(text) : {};
-  } catch {
-    throw new Error("Invalid JSON from chat API");
-  }
+    const { data } = await axios.post<ChatApiResponse>(
+      url,
+      { message },
+      {
+        headers,
+        withCredentials: true,
+      },
+    );
 
-  if (!res.ok) {
-    const err =
-      typeof data === "object" && data !== null && "message" in data
-        ? String((data as { message: unknown }).message)
-        : res.statusText;
-    throw new Error(err || `Request failed (${res.status})`);
+    if (data.session_id) {
+      setSessionIdCookie(data.session_id);
+    }
+    return data;
+  } catch (error) {
+    if (axios.isAxiosError(error)) {
+      const apiMessage =
+        typeof error.response?.data === "object" &&
+        error.response?.data &&
+        "message" in error.response.data
+          ? String((error.response.data as { message: unknown }).message)
+          : undefined;
+      throw new Error(
+        apiMessage ??
+          error.message ??
+          `Request failed (${error.response?.status ?? "unknown"})`,
+      );
+    }
+    throw error;
   }
-
-  const body = data as ChatApiResponse;
-  if (body.session_id) {
-    setSessionIdCookie(body.session_id);
-  }
-  return body;
 }
