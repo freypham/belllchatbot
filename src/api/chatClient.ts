@@ -1,9 +1,5 @@
 import axios from "axios";
 import type { ChatApiResponse } from "../types/chat";
-import {
-  getSessionIdFromCookie,
-  setSessionIdCookie,
-} from "../lib/sessionCookie";
 
 const DEFAULT_URL = import.meta.env.DEV
   ? "/api/chatbot"
@@ -18,16 +14,12 @@ export async function postChatMessage(
     throw new Error("Missing VITE_API_KEY. Set it in .env.local");
   }
 
-  const sessionFromCookie = getSessionIdFromCookie();
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
     "Access-Control-Allow-Origin": "*",
     "Access-Control-Allow-Headers": "Content-Type, Authorization",
     "x-api-key": apiKey,
   };
-  if (sessionFromCookie) {
-    headers["X-Session-Id"] = sessionFromCookie;
-  }
 
   try {
     const { data } = await axios.post<ChatApiResponse>(
@@ -37,10 +29,6 @@ export async function postChatMessage(
         headers,
       },
     );
-    const currSessionId = getSessionIdFromCookie();
-    if (currSessionId !== data.session_id) {
-      setSessionIdCookie(data.session_id);
-    }
 
     return data;
   } catch (error) {
