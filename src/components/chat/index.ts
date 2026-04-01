@@ -1,8 +1,11 @@
 export { ChatContainer } from "./ChatContainer";
+export { ChatHeader } from "./ChatHeader";
 export { ChatInput } from "./ChatInput";
+export { ChatLayout } from "./ChatLayout";
 export { ListingCard } from "./ListingCard";
 export { ListingCarousel } from "./ListingCarousel";
 export { ListingDetailModal } from "./ListingDetailModal";
 export { MessageItem } from "./MessageItem";
 export { MessageList } from "./MessageList";
+export { ThemeToggle } from "./ThemeToggle";
 export { TypingIndicator } from "./TypingIndicator";

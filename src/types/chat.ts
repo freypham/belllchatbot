@@ -30,6 +30,10 @@ export interface ChatMessage {
   role: "user" | "assistant";
   content: string;
   listings?: PropertyListing[];
+  /** Shown while SSE is in progress (e.g. tool / status line). */
+  streamStatus?: string;
+  /** True until `done` event for this assistant message. */
+  isStreaming?: boolean;
 }
 
 export interface ChatApiResponse {

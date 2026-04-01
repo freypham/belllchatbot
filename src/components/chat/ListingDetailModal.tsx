@@ -187,8 +187,16 @@ export function ListingDetailModal({
         )}
 
         <div className="mb-5 grid grid-cols-2 gap-2 rounded-xl bg-[var(--social-bg)] p-3 text-sm text-[var(--text-h)]">
-          <InfoPill label="Beds / Baths" value={`${prettyNumber(beds)} / ${prettyNumber(baths)}`} />
-          <InfoPill label="Area" value={area != null ? `${Math.round(area).toLocaleString()} sqft` : "—"} />
+          <InfoPill
+            label="Beds / Baths"
+            value={`${prettyNumber(beds)} / ${prettyNumber(baths)}`}
+          />
+          <InfoPill
+            label="Area"
+            value={
+              area != null ? `${Math.round(area).toLocaleString()} sqft` : "—"
+            }
+          />
           <InfoPill label="Type" value={propertyType} />
           <InfoPill label="Tenure" value={tenure} />
         </div>
@@ -248,7 +256,11 @@ function Arrow({ direction }: { direction: "left" | "right" }) {
       aria-hidden
     >
       {direction === "left" ? (
-        <path d="M15 18l-6-6 6-6" strokeLinecap="round" strokeLinejoin="round" />
+        <path
+          d="M15 18l-6-6 6-6"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
       ) : (
         <path d="M9 18l6-6-6-6" strokeLinecap="round" strokeLinejoin="round" />
       )}

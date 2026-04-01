@@ -12,13 +12,13 @@ export function TypingIndicator() {
           Bella
         </span>
         <div
-          className="flex items-center gap-1.5 rounded-2xl border border-[var(--border)] bg-[var(--social-bg)] px-4 py-3 text-sm text-[var(--text)]"
+          className="flex items-center gap-[7px] rounded-2xl border border-[var(--border)] bg-[var(--social-bg)] px-4 py-3 text-sm text-[var(--text)]"
           aria-live="polite"
           aria-label="Assistant is typing"
         >
-          <span className="typing-dot h-2 w-2 animate-bounce rounded-full bg-[var(--text)]/50 [animation-delay:0ms]" />
-          <span className="typing-dot h-2 w-2 animate-bounce rounded-full bg-[var(--text)]/50 [animation-delay:150ms]" />
-          <span className="typing-dot h-2 w-2 animate-bounce rounded-full bg-[var(--text)]/50 [animation-delay:300ms]" />
+          <span className="typing-dot-wave" />
+          <span className="typing-dot-wave" />
+          <span className="typing-dot-wave" />
         </div>
       </div>
     </div>

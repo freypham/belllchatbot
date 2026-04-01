@@ -1,21 +1,21 @@
-import { useMutation } from "@tanstack/react-query";
 import { useCallback, useEffect, useState } from "react";
-import { postChatMessage } from "../../api/chatClient";
+import { streamChatMessage } from "../../api/chatClient";
+import { useChatTheme } from "../../hooks/useChatTheme";
 import {
   loadMessagesFromStorage,
   saveMessagesToStorage,
 } from "../../lib/chatPersistence";
+import {
+  formatStreamStatus,
+  newMessageId,
+} from "../../lib/chatStreamHelpers";
 import type { ChatMessage, PropertyListing } from "../../types/chat";
+import { CHAT_EMPTY_HINT } from "./chatConstants";
+import { ChatHeader } from "./ChatHeader";
 import { ChatInput } from "./ChatInput";
+import { ChatLayout } from "./ChatLayout";
 import { ListingDetailModal } from "./ListingDetailModal";
 import { MessageList } from "./MessageList";
-
-const EMPTY_HINT =
-  "Ask me to find properties based on your budget, location, or preferences";
-
-function newId(): string {
-  return crypto.randomUUID();
-}
 
 export function ChatContainer() {
   const [messages, setMessages] = useState<ChatMessage[]>(() =>
@@ -25,91 +25,141 @@ export function ChatContainer() {
   const [modalListing, setModalListing] = useState<PropertyListing | null>(
     null,
   );
+  const [isStreaming, setIsStreaming] = useState(false);
+  const { theme, toggleTheme } = useChatTheme();
 
   useEffect(() => {
     saveMessagesToStorage(messages);
   }, [messages]);
 
-  const mutation = useMutation({
-    mutationFn: (text: string) => postChatMessage(text),
-  });
+  const sendMessage = useCallback(
+    async (text: string) => {
+      if (!text.trim() || isStreaming) return;
 
-  const handleSend = useCallback(() => {
-    const text = draft.trim();
-    if (!text || mutation.isPending) return;
+      const userMessage: ChatMessage = {
+        id: newMessageId(),
+        role: "user",
+        content: text,
+      };
+      const assistantId = newMessageId();
+      const assistantPlaceholder: ChatMessage = {
+        id: assistantId,
+        role: "assistant",
+        content: "",
+        isStreaming: true,
+        streamStatus: "Thinking…",
+      };
 
-    const userMessage: ChatMessage = {
-      id: newId(),
-      role: "user",
-      content: text,
-    };
-    setMessages((prev) => [...prev, userMessage]);
-    setDraft("");
+      setMessages((prev) => [...prev, userMessage, assistantPlaceholder]);
+      setIsStreaming(true);
 
-    mutation.mutate(text, {
-      onSuccess: (data) => {
-        setMessages((prev) => [
-          ...prev,
-          {
-            id: newId(),
-            role: "assistant",
-            content: data.message,
-            listings: data.listings,
+      try {
+        await streamChatMessage(text, {
+          onStatus: (payload) => {
+            setMessages((prev) =>
+              prev.map((m) =>
+                m.id === assistantId
+                  ? {
+                      ...m,
+                      streamStatus: formatStreamStatus(payload.tools),
+                    }
+                  : m,
+              ),
+            );
           },
-        ]);
-      },
-      onError: (err) => {
+          onText: (chunk) => {
+            if (!chunk) return;
+            setMessages((prev) =>
+              prev.map((m) =>
+                m.id === assistantId
+                  ? {
+                      ...m,
+                      content: m.content + chunk,
+                      streamStatus: undefined,
+                    }
+                  : m,
+              ),
+            );
+          },
+          onListings: (listings) => {
+            setMessages((prev) =>
+              prev.map((m) => (m.id === assistantId ? { ...m, listings } : m)),
+            );
+          },
+          onDone: () => {
+            setMessages((prev) =>
+              prev.map((m) =>
+                m.id === assistantId
+                  ? {
+                      ...m,
+                      isStreaming: false,
+                      streamStatus: undefined,
+                    }
+                  : m,
+              ),
+            );
+          },
+        });
+      } catch (err) {
         const msg =
           err instanceof Error
             ? err.message
             : "Something went wrong. Try again.";
-        setMessages((prev) => [
-          ...prev,
-          { id: newId(), role: "assistant", content: msg },
-        ]);
-      },
-    });
-  }, [draft, mutation]);
+        setMessages((prev) =>
+          prev.map((m) =>
+            m.id === assistantId
+              ? {
+                  ...m,
+                  content: m.content || msg,
+                  isStreaming: false,
+                  streamStatus: undefined,
+                }
+              : m,
+          ),
+        );
+      } finally {
+        setMessages((prev) =>
+          prev.map((m) =>
+            m.id === assistantId && m.isStreaming
+              ? { ...m, isStreaming: false, streamStatus: undefined }
+              : m,
+          ),
+        );
+        setIsStreaming(false);
+      }
+    },
+    [isStreaming],
+  );
+
+  const handleSend = useCallback(() => {
+    const text = draft.trim();
+    if (!text || isStreaming) return;
+    setDraft("");
+    void sendMessage(text);
+  }, [draft, isStreaming, sendMessage]);
 
   return (
-    <div className="flex h-dvh min-h-0 flex-col bg-[var(--bg)]">
-      <header className="shrink-0 border-b border-[var(--border)] bg-[var(--bg)]/90 px-4 py-3 backdrop-blur-sm">
-        <div className="mx-auto flex max-w-[768px] items-center justify-between gap-3">
-          <div className="text-left">
-            <div className="flex items-center gap-2">
-              <span className="grid h-7 w-7 place-items-center rounded-full border border-[var(--border)] bg-[var(--social-bg)] text-xs font-semibold text-[var(--text-h)]">
-                B
-              </span>
-              <h1 className="text-base font-semibold text-[var(--text-h)]">
-                Bella
-              </h1>
-              <span className="inline-block h-2 w-2 rounded-full bg-emerald-500" />
-            </div>
-            <p className="mt-0.5 text-xs text-[var(--text)]">
-              Real estate assistant
-            </p>
-          </div>
-        </div>
-      </header>
+    <ChatLayout>
+      <ChatHeader theme={theme} onThemeToggle={toggleTheme} />
 
       <MessageList
         messages={messages}
-        isTyping={mutation.isPending}
+        isTyping={false}
         onSelectListing={setModalListing}
-        emptyHint={EMPTY_HINT}
+        emptyHint={CHAT_EMPTY_HINT}
       />
 
       <ChatInput
         value={draft}
         onChange={setDraft}
         onSend={handleSend}
-        disabled={mutation.isPending}
+        disabled={isStreaming}
       />
 
       <ListingDetailModal
         listing={modalListing}
         onClose={() => setModalListing(null)}
       />
-    </div>
+    </ChatLayout>
   );
 }

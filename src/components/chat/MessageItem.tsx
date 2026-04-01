@@ -3,6 +3,7 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import type { ChatMessage, PropertyListing } from "../../types/chat";
 import { ListingCarousel } from "./ListingCarousel";
+import { Avatar } from "./Avatar";
 
 /** Emphasize common real-estate keywords outside existing `**markdown**` spans. */
 function enhanceMarkdownForHighlights(content: string): string {
@@ -80,7 +81,7 @@ type MessageItemProps = {
 export function MessageItem({ message, onSelectListing }: MessageItemProps) {
   const isUser = message.role === "user";
   const senderName = isUser ? "You" : "Bella";
-  const avatarLabel = isUser ? "Y" : "B";
+  const avatarLabel = !isUser ? <Avatar /> : "B";
   const displayContent = isUser
     ? message.content
     : enhanceMarkdownForHighlights(message.content);
@@ -108,6 +109,11 @@ export function MessageItem({ message, onSelectListing }: MessageItemProps) {
           <span className="mb-1 px-1 text-xs font-medium text-[var(--text)]/80">
             {senderName}
           </span>
+          {!isUser && message.streamStatus && (
+            <span className="mb-1 max-w-full px-1 text-left text-[11px] text-[var(--text)]/70">
+              {message.streamStatus}
+            </span>
+          )}
           <div
             className={`max-w-[min(100%,85vw)] rounded-2xl px-4 py-3 text-[15px] leading-relaxed shadow-sm ${
               isUser
@@ -117,14 +123,32 @@ export function MessageItem({ message, onSelectListing }: MessageItemProps) {
           >
             {isUser ? (
               <p className="whitespace-pre-wrap text-left">{message.content}</p>
+            ) : !message.content.trim() && message.isStreaming ? (
+              <div
+                className="flex items-center gap-[7px] py-1"
+                aria-live="polite"
+                aria-label="Assistant is typing"
+              >
+                <span className="typing-dot-wave" />
+                <span className="typing-dot-wave" />
+                <span className="typing-dot-wave" />
+              </div>
             ) : (
-              <div className="prose-chat text-left">
-                <ReactMarkdown
-                  remarkPlugins={[remarkGfm]}
-                  components={markdownComponents}
-                >
-                  {displayContent}
-                </ReactMarkdown>
+              <div className="flex flex-wrap items-end gap-1">
+                <div className="prose-chat min-w-0 flex-1 text-left [&>*:last-child]:mb-0">
+                  <ReactMarkdown
+                    remarkPlugins={[remarkGfm]}
+                    components={markdownComponents}
+                  >
+                    {displayContent}
+                  </ReactMarkdown>
+                </div>
+                {message.isStreaming && (
+                  <span
+                    className="streaming-caret mb-1 shrink-0 self-end"
+                    aria-hidden
+                  />
+                )}
               </div>
             )}
           </div>

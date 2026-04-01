@@ -1,25 +1,60 @@
 import axios from "axios";
-import type { ChatApiResponse } from "../types/chat";
+import type { ChatApiResponse, PropertyListing } from "../types/chat";
 import {
   getSessionIdFromStorage,
   setSessionIdStorage,
 } from "../lib/sessionCookie";
 
 const DEFAULT_URL = "https://bella.staginggo.media/chatbot";
+const DEFAULT_STREAM_URL = "https://bella.staginggo.media/chatbot/stream";
+
+type StreamEventBase = { message_id?: string };
+
+type StreamEvent =
+  | (StreamEventBase & { type: "status"; tools?: string[] })
+  | (StreamEventBase & { type: "text"; text?: string })
+  | (StreamEventBase & { type: "listings"; listings?: unknown[] })
+  | (StreamEventBase & { type: "done"; session_id?: string });
+
+export type StreamHandlers = {
+  onStatus?: (payload: Extract<StreamEvent, { type: "status" }>) => void;
+  onText?: (text: string, messageId?: string) => void;
+  onListings?: (listings: PropertyListing[], messageId?: string) => void;
+  onDone?: (payload: Extract<StreamEvent, { type: "done" }>) => void;
+};
+
+function normalizeStreamListing(raw: unknown): PropertyListing | null {
+  if (typeof raw !== "object" || raw === null) return null;
+  const o = raw as Record<string, unknown>;
+  const title = typeof o.title === "string" ? o.title : "";
+  if (!title) return null;
+  const priceValue =
+    typeof o.price_value === "number"
+      ? o.price_value
+      : typeof o.price === "number"
+        ? o.price
+        : 0;
+  return {
+    ...o,
+    title,
+    price: priceValue,
+    price_value:
+      typeof o.price_value === "number" ? o.price_value : undefined,
+  } as PropertyListing;
+}
 
 export async function postChatMessage(
   message: string,
 ): Promise<ChatApiResponse> {
   const url = import.meta.env.VITE_CHAT_API_URL ?? DEFAULT_URL;
   const apiKey = import.meta.env.VITE_API_KEY;
-  if (!apiKey) {
-    throw new Error("Missing VITE_API_KEY. Set it in .env.local");
-  }
 
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
-    "x-api-key": apiKey,
   };
+  if (apiKey) {
+    headers["x-api-key"] = apiKey;
+  }
   const sessionId = getSessionIdFromStorage();
   if (sessionId) {
     headers["session_id"] = sessionId;
@@ -54,5 +89,100 @@ export async function postChatMessage(
       );
     }
     throw error;
+  }
+}
+
+export async function streamChatMessage(
+  message: string,
+  handlers: StreamHandlers,
+): Promise<void> {
+  const url = import.meta.env.VITE_CHAT_STREAM_API_URL ?? DEFAULT_STREAM_URL;
+  const apiKey = import.meta.env.VITE_API_KEY;
+
+  const sessionId = getSessionIdFromStorage();
+  const body: Record<string, unknown> = { message };
+  if (sessionId) body.session_id = sessionId;
+
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+    Accept: "text/event-stream",
+  };
+  if (apiKey) {
+    headers["x-api-key"] = apiKey;
+  }
+  if (sessionId) {
+    headers["X-Session-Id"] = sessionId;
+  }
+
+  const response = await fetch(url, {
+    method: "POST",
+    headers,
+    body: JSON.stringify(body),
+  });
+
+  if (!response.ok) {
+    const text = await response.text();
+    throw new Error(text || `Request failed (${response.status})`);
+  }
+
+  if (!response.body) {
+    throw new Error("Stream is not available in this browser");
+  }
+
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder();
+  let buffer = "";
+
+  while (true) {
+    const { value, done } = await reader.read();
+    if (done) break;
+    buffer += decoder.decode(value, { stream: true });
+
+    const events = buffer.split("\n\n");
+    buffer = events.pop() ?? "";
+
+    for (const eventBlock of events) {
+      const dataLines = eventBlock
+        .split("\n")
+        .filter((line) => line.startsWith("data:"))
+        .map((line) => line.slice(5).trim());
+      if (dataLines.length === 0) continue;
+      const raw = dataLines.join("\n");
+      if (!raw) continue;
+
+      let payload: StreamEvent;
+      try {
+        payload = JSON.parse(raw) as StreamEvent;
+      } catch {
+        continue;
+      }
+
+      switch (payload.type) {
+        case "status":
+          handlers.onStatus?.(payload);
+          break;
+        case "text":
+          handlers.onText?.(payload.text ?? "", payload.message_id);
+          break;
+        case "listings": {
+          const rawList = Array.isArray(payload.listings)
+            ? payload.listings
+            : [];
+          const listings = rawList
+            .map(normalizeStreamListing)
+            .filter((x): x is PropertyListing => x !== null);
+          handlers.onListings?.(listings, payload.message_id);
+          break;
+        }
+        case "done":
+          if (payload.session_id) {
+            setSessionIdStorage(payload.session_id);
+          }
+          handlers.onDone?.(payload);
+          break;
+        default:
+          break;
+      }
+    }
   }
 }

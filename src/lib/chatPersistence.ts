@@ -23,7 +23,10 @@ export function loadMessagesFromStorage(): ChatMessage[] {
 
 export function saveMessagesToStorage(messages: ChatMessage[]): void {
   try {
-    sessionStorage.setItem(STORAGE_KEY, JSON.stringify(messages));
+    const sanitized = messages.map(
+      ({ isStreaming: _s, streamStatus: _st, ...rest }) => rest,
+    );
+    sessionStorage.setItem(STORAGE_KEY, JSON.stringify(sanitized));
   } catch {
     /* quota or private mode */
   }
