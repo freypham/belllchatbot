@@ -91,7 +91,7 @@ export function MessageItem({ message, onSelectListing }: MessageItemProps) {
       className={`message-enter flex w-full flex-col gap-1 ${isUser ? "items-end" : "items-start"}`}
     >
       <div
-        className={`flex w-full max-w-[min(100%,92%)] items-end gap-2.5 ${isUser ? "flex-row-reverse" : "flex-row"}`}
+        className={`flex w-full max-w-full items-end gap-2 sm:max-w-[min(100%,92%)] sm:gap-2.5 ${isUser ? "flex-row-reverse" : "flex-row"}`}
       >
         <div
           className={`grid h-8 w-8 shrink-0 place-items-center rounded-full text-xs font-semibold ${
@@ -115,7 +115,7 @@ export function MessageItem({ message, onSelectListing }: MessageItemProps) {
             </span>
           )}
           <div
-            className={`max-w-[min(100%,85vw)] rounded-2xl px-4 py-3 text-[15px] leading-relaxed shadow-sm ${
+            className={`w-full max-w-full rounded-2xl px-3 py-2.5 text-[15px] leading-relaxed shadow-sm sm:max-w-[min(100%,85vw)] sm:px-4 sm:py-3 ${
               isUser
                 ? "bg-[var(--accent)] text-white"
                 : "border border-[var(--border)] bg-[var(--social-bg)] text-[var(--text)]"
@@ -155,7 +155,7 @@ export function MessageItem({ message, onSelectListing }: MessageItemProps) {
         </div>
       </div>
       {!isUser && message.listings && message.listings.length > 0 && (
-        <div className="w-full max-w-full pl-10">
+        <div className="w-full max-w-full pl-0 sm:pl-10">
           <ListingCarousel
             listings={message.listings}
             onSelectListing={onSelectListing}

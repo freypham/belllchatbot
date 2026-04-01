@@ -28,12 +28,12 @@ export function MessageList({
   return (
     <div
       ref={listRef}
-      className="flex-1 overflow-y-auto overscroll-contain px-3 py-6 sm:px-4"
+      className="flex-1 overflow-y-auto overscroll-y-contain px-[max(0.75rem,env(safe-area-inset-left))] py-4 pr-[max(0.75rem,env(safe-area-inset-right))] [-webkit-overflow-scrolling:touch] sm:px-4 sm:py-6"
     >
-      <div className="mx-auto flex max-w-[768px] flex-col gap-6">
+      <div className="mx-auto flex max-w-[768px] flex-col gap-4 sm:gap-6 h-full">
         {showEmpty && (
-          <div className="message-enter rounded-2xl border border-dashed border-[var(--border)] bg-[var(--social-bg)]/60 px-6 py-12 text-center">
-            <p className="text-lg font-medium text-[var(--text-h)]">
+          <div className="message-enter rounded-2xl border border-dashed border-[var(--border)] bg-[var(--social-bg)]/60 px-4 py-10 text-center sm:px-6 sm:py-12">
+            <p className="text-base font-medium text-[var(--text-h)] sm:text-lg">
               Bella · Property assistant
             </p>
             <p className="mt-3 text-[15px] leading-relaxed text-[var(--text)]">

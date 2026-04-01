@@ -88,14 +88,14 @@ export function ListingDetailModal({
 
   return (
     <div
-      className="fixed inset-0 z-[100] flex items-center justify-center bg-black/45 p-4 backdrop-blur-[2px]"
+      className="fixed inset-0 z-[100] flex items-stretch justify-center bg-black/45 p-0 backdrop-blur-[2px] sm:items-center sm:p-4"
       role="dialog"
       aria-modal="true"
       aria-labelledby="listing-modal-title"
       onClick={onClose}
     >
       <div
-        className="max-h-[min(90vh,720px)] w-full max-w-lg overflow-y-auto rounded-2xl border border-[var(--border)] bg-[var(--bg)] p-6 shadow-[var(--shadow)]"
+        className="flex max-h-[100dvh] w-full max-w-lg flex-1 flex-col overflow-y-auto rounded-none border-0 border-[var(--border)] bg-[var(--bg)] p-4 pb-[max(1rem,env(safe-area-inset-bottom))] pt-[max(1rem,env(safe-area-inset-top))] shadow-[var(--shadow)] sm:max-h-[min(90vh,720px)] sm:flex-initial sm:rounded-2xl sm:border sm:p-6"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="mb-4 flex items-start justify-between gap-3">
@@ -108,7 +108,7 @@ export function ListingDetailModal({
           <button
             type="button"
             onClick={onClose}
-            className="rounded-lg p-2 text-[var(--text)] hover:bg-[var(--social-bg)]"
+            className="touch-manip -m-1 rounded-lg p-3 text-[var(--text)] hover:bg-[var(--social-bg)] active:bg-[var(--social-bg)]"
             aria-label="Close"
           >
             <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden>
@@ -224,7 +224,7 @@ export function ListingDetailModal({
         <button
           type="button"
           onClick={onClose}
-          className="mt-6 w-full rounded-xl bg-[var(--accent)] py-3 text-sm font-medium text-white shadow-sm hover:opacity-90"
+          className="touch-manip mt-6 min-h-[48px] w-full rounded-xl bg-[var(--accent)] py-3 text-sm font-medium text-white shadow-sm hover:opacity-90 active:opacity-90"
         >
           Close
         </button>

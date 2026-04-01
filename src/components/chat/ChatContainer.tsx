@@ -86,12 +86,16 @@ export function ChatContainer() {
               prev.map((m) => (m.id === assistantId ? { ...m, listings } : m)),
             );
           },
-          onDone: () => {
+          onDone: (payload) => {
             setMessages((prev) =>
               prev.map((m) =>
                 m.id === assistantId
                   ? {
                       ...m,
+                      ...(typeof payload.full_text === "string" &&
+                      payload.full_text.length > 0
+                        ? { content: payload.full_text }
+                        : {}),
                       isStreaming: false,
                       streamStatus: undefined,
                     }

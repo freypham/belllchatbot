@@ -18,8 +18,8 @@ export function ChatHeader({
   subtitle = "Real estate assistant",
 }: ChatHeaderProps) {
   return (
-    <header className="shrink-0 border-b border-[var(--border)] bg-[var(--bg)]/90 px-4 py-3 backdrop-blur-sm">
-      <div className="mx-auto flex max-w-[768px] items-center justify-between gap-3">
+    <header className="shrink-0 border-b border-[var(--border)] bg-[var(--bg)]/90 backdrop-blur-sm pt-[max(0.75rem,env(safe-area-inset-top))] pb-3 pl-[max(1rem,env(safe-area-inset-left))] pr-[max(1rem,env(safe-area-inset-right))]">
+      <div className="mx-auto flex max-w-[768px] items-center justify-between gap-2 sm:gap-3">
         <div className="text-left">
           <div className="flex items-center gap-2">
             <Avatar />

@@ -48,7 +48,7 @@ export function ListingCarousel({
         type="button"
         aria-label="Scroll listings left"
         onClick={() => scrollByPage(-1)}
-        className="absolute left-0 top-1/2 z-20 -translate-y-1/2 rounded-full border border-[var(--border)] bg-[var(--bg)] p-2 shadow-md transition hover:bg-[var(--social-bg)]"
+        className="touch-manip absolute left-0 top-1/2 z-20 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-[var(--border)] bg-[var(--bg)] shadow-md transition hover:bg-[var(--social-bg)] active:bg-[var(--social-bg)] sm:h-10 sm:w-10"
       >
         <Chevron direction="left" />
       </button>
@@ -56,14 +56,14 @@ export function ListingCarousel({
         type="button"
         aria-label="Scroll listings right"
         onClick={() => scrollByPage(1)}
-        className="absolute right-0 top-1/2 z-20 -translate-y-1/2 rounded-full border border-[var(--border)] bg-[var(--bg)] p-2 shadow-md transition hover:bg-[var(--social-bg)]"
+        className="touch-manip absolute right-0 top-1/2 z-20 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-full border border-[var(--border)] bg-[var(--bg)] shadow-md transition hover:bg-[var(--social-bg)] active:bg-[var(--social-bg)] sm:h-10 sm:w-10"
       >
         <Chevron direction="right" />
       </button>
 
       <div
         ref={scrollerRef}
-        className="scrollbar-thin flex snap-x snap-mandatory gap-4 overflow-x-auto overflow-y-hidden scroll-smooth px-10 py-1 [-ms-overflow-style:none] [scrollbar-width:thin] [&::-webkit-scrollbar]:h-1.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-[var(--border)]"
+        className="scrollbar-thin flex snap-x snap-mandatory gap-3 overflow-x-auto overflow-y-hidden scroll-smooth px-12 py-1 [-ms-overflow-style:none] [scrollbar-width:thin] [touch-action:pan-x] sm:gap-4 sm:px-10 [&::-webkit-scrollbar]:h-1.5 [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-[var(--border)]"
       >
         {listings.map((listing, i) => (
           <ListingCard

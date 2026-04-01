@@ -6,16 +6,19 @@ type ThemeToggleProps = {
 };
 
 export function ThemeToggle({ theme, onToggle }: ThemeToggleProps) {
+  const label = `Switch to ${theme === "dark" ? "light" : "dark"} mode`;
   return (
     <button
       type="button"
       onClick={onToggle}
-      className="inline-flex shrink-0 items-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--social-bg)] px-3 py-2 text-xs font-medium text-[var(--text-h)] transition hover:opacity-90"
-      aria-label={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
-      title={`${theme === "dark" ? "Light" : "Dark"} mode`}
+      className="touch-manip inline-flex min-h-[44px] min-w-[44px] shrink-0 items-center justify-center gap-2 rounded-xl border border-[var(--border)] bg-[var(--social-bg)] px-3 py-2 text-xs font-medium text-[var(--text-h)] transition hover:opacity-90 active:opacity-80 sm:min-w-0"
+      aria-label={label}
+      title={label}
     >
       {theme === "dark" ? <IconSun /> : <IconMoon />}
-      {theme === "dark" ? "Light" : "Dark"}
+      <span className="hidden sm:inline">
+        {theme === "dark" ? "Light" : "Dark"}
+      </span>
     </button>
   );
 }

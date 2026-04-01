@@ -11,13 +11,25 @@ const DEFAULT_STREAM_URL = "https://bella.staginggo.media/chatbot/stream";
 type StreamEventBase = { message_id?: string };
 
 type StreamEvent =
+  | (StreamEventBase & { type: "message_start" })
   | (StreamEventBase & { type: "status"; tools?: string[] })
+  /** Legacy stream chunks */
   | (StreamEventBase & { type: "text"; text?: string })
+  /** Current API: incremental text */
+  | (StreamEventBase & { type: "text_delta"; delta?: string })
   | (StreamEventBase & { type: "listings"; listings?: unknown[] })
-  | (StreamEventBase & { type: "done"; session_id?: string });
+  | (StreamEventBase & {
+      type: "done";
+      session_id?: string;
+      full_text?: string;
+    });
 
 export type StreamHandlers = {
+  onMessageStart?: (
+    payload: Extract<StreamEvent, { type: "message_start" }>,
+  ) => void;
   onStatus?: (payload: Extract<StreamEvent, { type: "status" }>) => void;
+  /** Called for both `text` and `text_delta` chunks. */
   onText?: (text: string, messageId?: string) => void;
   onListings?: (listings: PropertyListing[], messageId?: string) => void;
   onDone?: (payload: Extract<StreamEvent, { type: "done" }>) => void;
@@ -158,8 +170,14 @@ export async function streamChatMessage(
       }
 
       switch (payload.type) {
+        case "message_start":
+          handlers.onMessageStart?.(payload);
+          break;
         case "status":
           handlers.onStatus?.(payload);
+          break;
+        case "text_delta":
+          handlers.onText?.(payload.delta ?? "", payload.message_id);
           break;
         case "text":
           handlers.onText?.(payload.text ?? "", payload.message_id);
