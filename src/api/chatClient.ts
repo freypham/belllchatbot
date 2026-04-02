@@ -24,6 +24,22 @@ type StreamEvent =
       full_text?: string;
     });
 
+/**
+ * Python / some serializers emit NaN/Infinity, which JSON.parse rejects.
+ * Without this, whole SSE events (e.g. listings) are dropped silently.
+ */
+function parseStreamEventJson(raw: string): StreamEvent {
+  try {
+    return JSON.parse(raw) as StreamEvent;
+  } catch {
+    const sanitized = raw
+      .replace(/:\s*NaN\b/g, ": null")
+      .replace(/:\s*-Infinity\b/g, ": null")
+      .replace(/:\s*Infinity\b/g, ": null");
+    return JSON.parse(sanitized) as StreamEvent;
+  }
+}
+
 export type StreamHandlers = {
   onMessageStart?: (
     payload: Extract<StreamEvent, { type: "message_start" }>,
@@ -164,7 +180,7 @@ export async function streamChatMessage(
 
       let payload: StreamEvent;
       try {
-        payload = JSON.parse(raw) as StreamEvent;
+        payload = parseStreamEventJson(raw);
       } catch {
         continue;
       }
